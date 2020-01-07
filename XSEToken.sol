@@ -39,9 +39,8 @@ contract Ownable {
    */
 
    // this function will be executed during initial load and will keep the smart contract creator (msg.sender) as Owner
-   // and also saved in Owners. This smart contract author is 
+   // and also saved in Owners. This smart contract creator/owner is 
    // Mr. Samret Wajanasathian CTO of Shuttle One Pte Ltd (https://www.shuttle.one)
-   // co-authors Mr. HongZhuang Lim CEO of Shuttle One Pte Ltd and owner of the contract Shuttle One Pte Ltd
 
    constructor() public {
     owner = msg.sender;
@@ -241,7 +240,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   uint256 public startTime;
   uint256 public nextMintTime;
   
-  // Visage Protocol KYC to encrypt Data
+  // KYC encode Data
   	struct KYCData{
 		bytes32    KYCData01;
 		bytes32    KYCData02;
@@ -390,6 +389,16 @@ contract ShuttleOne is StandarERC20, Ownable {
       emit Transfer(msg.sender,address(this),amount);
       
       msg.sender.transfer(_fund);
+      
+      return true;
+  }
+  
+  function burn(uint256 amount) public onlyOwners returns(bool){
+      require(balance[msg.sender] >= amount);
+      
+      balance[msg.sender] -= amount;
+      totalSupply_ -= amount; // burn token
+      emit Transfer(msg.sender,address(this),amount);
       
       return true;
   }
