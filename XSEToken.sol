@@ -223,11 +223,11 @@ contract StandarERC20 is ERC20{
 contract ShuttleOne is StandarERC20, Ownable {
   using SafeMath256 for uint256;
   string public name = "ShuttleOne";
-  string public symbol = "XSE"; 
+  string public symbol = "SZO"; 
   uint256 public decimals = 18;
-  uint256 public version = 6;
-  uint256 public token_price = 400000000000000; // 0.0004 ETH
-  uint256 public tokenRedeem = 300000000000000; // 0.0003 ETH
+  uint256 public version = 7;
+  uint256 public token_price = 500000000000000; // 0.0005 ETH
+  uint256 public tokenRedeem = 400000000000000; // 0.0004 ETH
   uint256 public totalSell = 0;
 
   
@@ -310,7 +310,7 @@ contract ShuttleOne is StandarERC20, Ownable {
 // Add information KYC for standard ERC20 transfer to block only KYC user  
   function transfer(address _to, uint256 _value) public returns (bool){
       require(haveKYC[msg.sender] == true);
-      require(haveKYC[_to] == true);
+      //require(haveKYC[_to] == true);  // remove recieve no KYC
 
        super.transfer(_to, _value);
   }
@@ -319,7 +319,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   function transferFrom(address _from, address _to, uint256 _value) public returns (bool){
 
         require(haveKYC[_from] == true);
-        require(haveKYC[_to] == true);
+//        require(haveKYC[_to] == true); // remove recieve no KYC
         super.transferFrom(_from, _to, _value);
    }
     // Set address can allow internal transfer or not. Default are off. Owner of address should allow by them self
@@ -338,7 +338,7 @@ contract ShuttleOne is StandarERC20, Ownable {
     require(balance[_from] >= _value);
     require(_to != address(0));
     require(haveKYC[_from] == true);
-    require(haveKYC[_to] == true);
+  //  require(haveKYC[_to] == true);
         
     balance[_from] -= _value; 
     balance[_to] += _value;
