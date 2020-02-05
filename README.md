@@ -5,7 +5,7 @@
 	Only the Owner of the Smart Contract can adjust the token price in the smart contract
 	The token price has a min floor price of 0.0004Eth per SZO
 	
-# Issuance of Token
+# General Token Information
 
 ShuttleOne's Money Protocol requires KYC onchain through the ShuttleOne app. Only KYCed verified and approved users are able to transact.
 	The KYC data will be encrypted from client and stored on the blockchain, however only ShuttleOne is able to decrypt the KYC data to reveal the KYC details usually for law enforcement work.
@@ -17,12 +17,15 @@ The SZO token is priced to the ethereum gasnetwork gwei. Every SZO is backed by 
 # Token Burning 
 
 Total token supply in this contract is 138mil SZO, there's a 5% inflation per year after the issuance of all the tokens. The inflation conditions will only intiate after all tokens are issued and tied to minting conditions:
+
 	1. Opening of ShuttleOne wallets
+	
 	2. Unique KYC verified onchain
+	
 	3. Top up of wallet is done
 
 ShuttleOne calculates profits as token_price minus tokenRedeem with the excess in digital assets sent to a custody of ShuttleOne that would be used during extreme price volatility of eth or SZO prices and firstRedemption event.
-internalTransfer from wallet to wallet (i.e kyced users) is barred. This is administrator control level.
+internalTransfer from wallet to wallet (i.e kyced users) is barred from the smart contract. This is administrator control level.
 
 
 
