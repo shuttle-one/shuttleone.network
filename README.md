@@ -28,7 +28,7 @@ Each SZO will be priced as 2-7 gwei for the purpose of paying for gas fees, whic
 
 A user will get SZO when they open a Shuttle One wallet, pass any required customer onboarding processes and procedures, and complete their first top up of the Shuttle One wallet. The number of SZO that will be issued will be priced according to the price of the Ethereum gas network at the point in time. Although SZO can also be bought from another platform, only users that open a Shuttle One wallet and pass any required customer onboarding processes and procedures will be able to use their SZO tokens in practice. 
 
-At the initial stage, there will be 230 million total pre-minted tokens in Shuttle One’s smart contract, which is modelled on the initial expected number of users and partners within the Shuttle One ecosystem. In future, there may be new tokens minted to manage of the adoption of the Shuttle One mobile application, depending on the number of new users added. 
+At the initial stage, there will be 230 million total pre-minted tokens in Shuttle One’s smart contract, which is modelled on the initial expected number of users and partners within the Shuttle One ecosystem. In future, after all 230mil SZO are fully circulated, the contract has a hard coded minting condition of 5% new tokens to be minted to manage of the adoption of the Shuttle One mobile application, depending on the number of new users added. 
 
 Holders of SZO may be entitled to promotional discount redemptions for a basket of daily necessities (eg. rice, cooking oil et al) from time to time. However, these will not be guaranteed, and holders of SZO will still need to purchase these discount coupons to be entitled to goods. 
 
