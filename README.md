@@ -1,5 +1,9 @@
 # Overview of Money Protocol
 
+Published: 22nd Dec 2019
+First Revision: 29 Jan 2020
+Second Revision: 05 Feb 2020
+
 Money protocol is a regulatory compliant standard for e-wallet, e-money, Digital Payment Token wallets to interact with the ecosystem of fiat on and off ramps that ShuttleOne operates within regulation permissive jurisdictions.
 
 Money Protocol ringfences and works in a combination of:
@@ -64,4 +68,5 @@ ShuttleOne calculates profits(or loss) as token_price minus tokenRedeem with the
 internalTransfer from wallet to wallet (i.e kyced users) is barred from the smart contract.
 
 Should there be an excess of SZO/gwei, excess SZO will be burnt through each transaction.
+
 
