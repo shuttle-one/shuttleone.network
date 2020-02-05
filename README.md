@@ -1,11 +1,27 @@
-# Shuttle One Token (SZO)
+# Overview of the ShuttleOne Token (SZO)
+
+SZO is a utility token that can only be used on Shuttle One’s platform, to subsidize users’ transactions. 
+
+When a transaction is conducted or a contract is executed on the Ethereum blockchain platform, a certain fee, known as ‘gas’, is required. Gas is priced in sub-units of the digital token Ether, known as gwei. Miners set the price of gas and can decline to process a transaction if it does not meet their price threshold. Gas is used to allocate resources of the Ethereum virtual machine so that decentralized applications such as smart contracts can self-execute in a secured fashion. 
+
+Each SZO will be priced as 2-7 gwei for the purpose of paying for gas fees, which will reduce the cost of network fees to run the Shuttle One platform.  
+
+A user will get SZO when they open a Shuttle One wallet, pass any required customer onboarding processes and procedures, and complete their first top up of the Shuttle One wallet. The number of SZO that will be issued will be priced according to the price of the Ethereum gas network at the point in time. Although SZO can also be bought from another platform, only users that open a Shuttle One wallet and pass any required customer onboarding processes and procedures will be able to use their SZO tokens in practice. 
+
+At the initial stage, there will be 230 million total pre-minted tokens in Shuttle One’s smart contract, which is modelled on the initial expected number of users and partners within the Shuttle One ecosystem. In future, there may be new tokens minted to manage of the adoption of the Shuttle One mobile application, depending on the number of new users added. 
+
+Holders of SZO may be entitled to promotional discount redemptions for a basket of daily necessities (eg. rice, cooking oil et al) from time to time. However, these will not be guaranteed, and holders of SZO will still need to purchase these discount coupons to be entitled to goods. 
+
+In future, there are also plans to use the SZO token as a governance token to set rates. This may be in the form of participation in a voting process to determine the forex rates when offering the conversion of fiat currencies to DAI. 
+
+	
+# General Token Information
+
     - Standard ERC20
     - 18 decimals
     - token_price represents the starting sale price that will be issued from the smart contract
 	Only the Owner of the Smart Contract can adjust the token price in the smart contract
 	The token price has a min floor price of 0.0004Eth per SZO
-	
-# General Token Information
 
 ShuttleOne's Money Protocol requires KYC onchain through the ShuttleOne app. Only KYCed verified and approved users are able to transact.
 	The KYC data will be encrypted from client and stored on the blockchain, however only ShuttleOne is able to decrypt the KYC data to reveal the KYC details usually for law enforcement work.
