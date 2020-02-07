@@ -1,4 +1,4 @@
-pragma solidity ^0.5.10;
+pragma solidity 0.5.10;
 
 library SafeMath256 {
 
@@ -16,8 +16,9 @@ library SafeMath256 {
   
 }
 
-contract Ownable {
 
+
+contract Ownable {
 
 // A list of owners which will be saved as a list here, 
 // and the values are the owner’s names. 
@@ -142,6 +143,8 @@ contract Ownable {
   }
 }
 
+
+
 // Mandatory basic functions according to ERC20 standard
 contract ERC20 {
 	   event Transfer(address indexed from, address indexed to, uint256 tokens);
@@ -239,6 +242,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   
   uint256 public startTime;
   uint256 public nextMintTime;
+  uint256 public nextBuyTime;
   
   // KYC encode Data
   	struct KYCData{
@@ -250,7 +254,8 @@ contract ShuttleOne is StandarERC20, Ownable {
 	mapping (address=>uint256) OwnerToKycData; // mapping index with address
   
    mapping (address => bool) haveKYC;
-   mapping (address => bool) haveInterTran; // Allow for internal transfer default = no 
+   mapping (address => bool) disInterTran; // Allow for internal transfer default = Yes 
+   mapping (address => bool) agents;
   
   address lockContract  = 0x10A12B15B879f098132324595db383e5CD178aC5; //Change later to smart contracct
   
@@ -263,15 +268,20 @@ contract ShuttleOne is StandarERC20, Ownable {
     MAX_TOKEN_SELL = HARD_CAP - tokenLock;
     emit Transfer(address(this),lockContract,tokenLock);
     startTime = now;
-    nextMintTime = startTime + 356 days;
+    nextMintTime = startTime + 365 days;
+    nextBuyTime = startTime;
   }
   
  
   uint256 tokenProfit;
   
   function buyToken() payable public returns(bool){
+      require(msg.value >= token_price);
+      require(now - nextBuyTime > 60 seconds);
+      
       uint256 amount = msg.value / token_price;
       tokenProfit += (token_price - tokenRedeem) * amount;
+      
       
       amount  = amount * _1Token;
       require(totalSell + amount <= MAX_TOKEN_SELL);
@@ -300,7 +310,7 @@ contract ShuttleOne is StandarERC20, Ownable {
       if(totalSupply_ + amount <= NEW_HARD_CAP){
           totalSupply_ += amount;
           balance[_to] += amount;
-          emit Transfer(address(this),_to,amount);
+          emit Transfer(address(0),_to,amount);
           return true;
       }
       
@@ -322,9 +332,9 @@ contract ShuttleOne is StandarERC20, Ownable {
 //        require(haveKYC[_to] == true); // remove recieve no KYC
         super.transferFrom(_from, _to, _value);
    }
-    // Set address can allow internal transfer or not. Default are off. Owner of address should allow by them self
-  function setAllowInterTransfer(bool _allow) public returns(bool){
-      haveInterTran[msg.sender] = _allow;
+    // Set address can allow internal transfer or not. Default are on. Owner of address should disable by them self
+  function setNotAllowInterTransfer(bool _allow) public returns(bool){
+      disInterTran[msg.sender] = _allow;
       return true;
   }
   
@@ -334,7 +344,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   // sender and reciever  will need to KYC
    function intTransfer(address _from, address _to, uint256 _value) external onlyOwners returns(bool){
    
-    require(haveInterTran[_from] == true);
+    require(disInterTran[_from] == false);
     require(balance[_from] >= _value);
     require(_to != address(0));
     require(haveKYC[_from] == true);
@@ -370,23 +380,34 @@ contract ShuttleOne is StandarERC20, Ownable {
   
    //Change token sell price. 
     function setTokenPrice(uint256 pricePerToken) public onlyOwners returns(bool){
-      require(pricePerToken > 400000000000000);
+      require(pricePerToken > tokenRedeem);
       
       token_price = pricePerToken;
       return true;
     } 
   
+    function addAgent(address _agent) public onlyOwners returns(bool){
+        require(agents[_agent] == false);
+        require(haveKYC[_agent] == true);
+        require(_agent != msg.sender);
+        
+        agents[_agent] = true;
+        
+        return true;
+    }
 
   //Redeem token that use for fee. after reedeem token will burn 
   function redeemFee(uint256 amount) public onlyOwners returns(bool){
       uint256  _fund;
+      require(agents[msg.sender] == true);
+      
       _fund = (amount / _1Token) * tokenRedeem; 
       require(balance[msg.sender] >= amount);
       require(address(this).balance >= _fund);
       
       balance[msg.sender] -= amount;
       totalSupply_ -= amount; // burn token
-      emit Transfer(msg.sender,address(this),amount);
+      emit Transfer(msg.sender,address(0),amount);
       
       msg.sender.transfer(_fund);
       
@@ -398,7 +419,7 @@ contract ShuttleOne is StandarERC20, Ownable {
       
       balance[msg.sender] -= amount;
       totalSupply_ -= amount; // burn token
-      emit Transfer(msg.sender,address(this),amount);
+      emit Transfer(msg.sender,address(0),amount);
       
       return true;
   }
@@ -423,6 +444,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   
   function withDrawFunc(uint256 _fund) public onlyOwners{
 		require(address(this).balance >= _fund);
+		require(_fund & 1 == 0); // only even number
 		require(tokenProfit >= _fund);
 		require(profitAddr1 != address(0));
 		require(profitAddr2 != address(0));
