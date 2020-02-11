@@ -298,7 +298,7 @@ contract ShuttleOne is StandarERC20, Ownable {
       require(haveKYC[_to] == true);
       
       // increte counter to next 365 day that can mint again if reach new NEW_HARD_CAP
-      if(now > nextMintTime && totalSupply_ == NEW_HARD_CAP){
+      if(now > nextMintTime && totalSell >= MAX_TOKEN_SELL){
           nextMintTime = nextMintTime + 365;
           NEW_HARD_CAP = NEW_HARD_CAP + MINT_PER_YEAR;
       }
