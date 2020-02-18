@@ -228,7 +228,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   string public name = "ShuttleOne";
   string public symbol = "SZO"; 
   uint256 public decimals = 18;
-  uint256 public version = 7;
+  uint256 public version = 8;
   uint256 public token_price = 500000000000000; // 0.0005 ETH
   uint256 public tokenRedeem = 400000000000000; // 0.0004 ETH
   uint256 public totalSell = 0;
@@ -238,6 +238,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   uint256 public HARD_CAP = 230000000 ether;
   uint256 public NEW_HARD_CAP = 230000000 ether; // start new hard cap and hard cap are same value
   uint256 public MINT_PER_YEAR = 11500000 ether; // 11.5 M (5%) Mint per year
+  uint256 public mintCount = MINT_PER_YEAR;
   uint256 public MAX_TOKEN_SELL;
   
   uint256 public startTime;
@@ -256,6 +257,11 @@ contract ShuttleOne is StandarERC20, Ownable {
    mapping (address => bool) haveKYC;
    mapping (address => bool) disInterTran; // Allow for internal transfer default = Yes 
    mapping (address => bool) agents;
+   
+   mapping(address => bool) whitelist;
+   mapping(address => bool) blacklist;
+   mapping(address => bool) shuttleOneWallets; //This shuttle one keep private key 
+   
   
   address lockContract  = 0x10A12B15B879f098132324595db383e5CD178aC5; //Change later to smart contracct
   
@@ -292,34 +298,118 @@ contract ShuttleOne is StandarERC20, Ownable {
       emit Transfer(address(this),msg.sender,amount);
       return true;
   }
+  
+  function setWhiteList(address _addr,bool _whiteList) public onlyOwners returns(bool){
+      whitelist[_addr] = _whiteList;
+      return true;
+  }
+  
+  function setBlackList(address _addr,bool _blackList) public onlyOwners returns(bool){
+      blacklist[_addr] = _blackList;
+      return true;
+  }
+  
+   function setShuttleOneWallet(address _addr) public onlyOwners returns (bool){
+      shuttleOneWallets[_addr] = true;
+  }
+  
+     function haveWhiteList(address _walletAddress) public view returns (bool){
+        return whitelist[_walletAddress]; 
+     }
+  
+     function haveBlackList(address _walletAddress) public view returns (bool){
+        return blacklist[_walletAddress]; 
+     }
+ 
+     function haveShuttleOneWallet(address _walletAddress) public view returns (bool){
+        return shuttleOneWallets[_walletAddress]; 
+     }
+  
+  
   // Token can mint only 11.5 M token per year after reach 230M token mint
-  function mintToken(address _to) public payable onlyOwners returns(bool){
-      // Check if pass 1 year and reach to hard cap then increate hard cap first 
-      require(haveKYC[_to] == true);
-      
-      // increte counter to next 365 day that can mint again if reach new NEW_HARD_CAP
-      if(now > nextMintTime && totalSell >= MAX_TOKEN_SELL){
-          nextMintTime = nextMintTime + 365;
-          NEW_HARD_CAP = NEW_HARD_CAP + MINT_PER_YEAR;
+    modifier canMintToken(){
+    require(whitelist[msg.sender] == true);
+    require(mintCount < MINT_PER_YEAR);
+    _;
+    }
+  
+    function resetMintCount() public onlyOwners returns(bool) {
+         if(now > nextMintTime && MINT_PER_YEAR == mintCount && totalSell >= MAX_TOKEN_SELL){
+              nextMintTime = nextMintTime + 365;
+              mintCount = 0;
+             return true;
+         }
+         
+         return false;
       }
+      
+      function mintWithOpenWallet(address _addr) public payable canMintToken returns(bool){
+           require(shuttleOneWallets[_addr] == false);
+           
+           uint256 amount = msg.value / token_price;
+           tokenProfit += (token_price - tokenRedeem) * amount;
+           amount  = amount * _1Token;
+           
+           require(mintCount + amount <= MINT_PER_YEAR);
+           totalSupply_ += amount;
+           balance[_addr] += amount;
+           shuttleOneWallets[_addr] = true;
+          emit Transfer(address(0),_addr,amount);
+          return true;
+      }
+      
+      function mintWithKYC(address _addr) public payable canMintToken returns(bool){
+           require(haveKYC[_addr] == false);
+           
+           uint256 amount = msg.value / token_price;
+           tokenProfit += (token_price - tokenRedeem) * amount;
+           amount  = amount * _1Token;
+           
+           require(mintCount + amount <= MINT_PER_YEAR);
+           totalSupply_ += amount;
+           balance[_addr] += amount;
+           haveKYC[_addr] = true;
+           emit Transfer(address(0),_addr,amount);
+           return true;
+       }
+       
+       function mintWithTopup(address _addr) public payable canMintToken returns(bool){
+           require(haveKYC[_addr] == true);
+           
+           uint256 amount = msg.value / token_price;
+           tokenProfit += (token_price - tokenRedeem) * amount;
+           amount  = amount * _1Token;
+           
+           require(mintCount + amount <= MINT_PER_YEAR);
+           totalSupply_ += amount;
+           balance[_addr] += amount;
+           emit Transfer(address(0),_addr,amount);
+           return true;
+       }
+       
+      
+   function mintToken() public payable canMintToken returns(bool){
+      require(haveKYC[msg.sender] == true);
       
       uint256 amount = msg.value / token_price;
       tokenProfit += (token_price - tokenRedeem) * amount;
       amount  = amount * _1Token;
       
-      if(totalSupply_ + amount <= NEW_HARD_CAP){
-          totalSupply_ += amount;
-          balance[_to] += amount;
-          emit Transfer(address(0),_to,amount);
-          return true;
-      }
-      
-      return false;
-  }
+      require(mintCount + amount <= MINT_PER_YEAR);
+      totalSupply_ += amount;
+      balance[msg.sender] += amount;
+      emit Transfer(address(0),msg.sender,amount);
+      return true;
+     }
+  
+ 
 
 // Add information KYC for standard ERC20 transfer to block only KYC user  
   function transfer(address _to, uint256 _value) public returns (bool){
       require(haveKYC[msg.sender] == true);
+      require(blacklist[msg.sender] == false);
+      require(blacklist[_to] == false);
+      
       //require(haveKYC[_to] == true);  // remove recieve no KYC
 
        super.transfer(_to, _value);
@@ -329,7 +419,10 @@ contract ShuttleOne is StandarERC20, Ownable {
   function transferFrom(address _from, address _to, uint256 _value) public returns (bool){
 
         require(haveKYC[_from] == true);
-//        require(haveKYC[_to] == true); // remove recieve no KYC
+        require(blacklist[msg.sender] == false);
+        require(blacklist[_to] == false);
+
+//      require(haveKYC[_to] == true); // remove recieve no KYC
         super.transferFrom(_from, _to, _value);
    }
     // Set address can allow internal transfer or not. Default are on. Owner of address should disable by them self
@@ -348,6 +441,9 @@ contract ShuttleOne is StandarERC20, Ownable {
     require(balance[_from] >= _value);
     require(_to != address(0));
     require(haveKYC[_from] == true);
+    require(blacklist[_from] == false);
+    require(blacklist[_to] == false);
+    
   //  require(haveKYC[_to] == true);
         
     balance[_from] -= _value; 
