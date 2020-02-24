@@ -343,49 +343,7 @@ contract ShuttleOne is StandarERC20, Ownable {
          return false;
       }
       
-      function mintWithOpenWallet(address _addr) public payable canMintToken returns(bool){
-           require(shuttleOneWallets[_addr] == false);
-           
-           uint256 amount = msg.value / token_price;
-           tokenProfit += (token_price - tokenRedeem) * amount;
-           amount  = amount * _1Token;
-           
-           require(mintCount + amount <= MINT_PER_YEAR);
-           totalSupply_ += amount;
-           balance[_addr] += amount;
-           shuttleOneWallets[_addr] = true;
-          emit Transfer(address(0),_addr,amount);
-          return true;
-      }
       
-      function mintWithKYC(address _addr) public payable canMintToken returns(bool){
-           require(haveKYC[_addr] == false);
-           
-           uint256 amount = msg.value / token_price;
-           tokenProfit += (token_price - tokenRedeem) * amount;
-           amount  = amount * _1Token;
-           
-           require(mintCount + amount <= MINT_PER_YEAR);
-           totalSupply_ += amount;
-           balance[_addr] += amount;
-           haveKYC[_addr] = true;
-           emit Transfer(address(0),_addr,amount);
-           return true;
-       }
-       
-       function mintWithTopup(address _addr) public payable canMintToken returns(bool){
-           require(haveKYC[_addr] == true);
-           
-           uint256 amount = msg.value / token_price;
-           tokenProfit += (token_price - tokenRedeem) * amount;
-           amount  = amount * _1Token;
-           
-           require(mintCount + amount <= MINT_PER_YEAR);
-           totalSupply_ += amount;
-           balance[_addr] += amount;
-           emit Transfer(address(0),_addr,amount);
-           return true;
-       }
        
       
    function mintToken() public payable canMintToken returns(bool){
