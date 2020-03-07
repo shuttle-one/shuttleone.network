@@ -272,6 +272,7 @@ contract ShuttleOne is StandarERC20, Ownable {
     balance[lockContract] = tokenLock;
     haveKYC[lockContract] = true;
     MAX_TOKEN_SELL = HARD_CAP - tokenLock;
+    totalSupply_ += tokenLock;
     emit Transfer(address(this),lockContract,tokenLock);
     startTime = now;
     nextMintTime = startTime + 365 days;
