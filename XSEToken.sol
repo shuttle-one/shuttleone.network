@@ -335,7 +335,7 @@ contract ShuttleOne is StandarERC20, Ownable {
     }
   
     function resetMintCount() public onlyOwners returns(bool) {
-         if(now > nextMintTime && MINT_PER_YEAR == mintCount && totalSell >= MAX_TOKEN_SELL){
+         if(now > nextMintTime && MINT_PER_YEAR == mintCount && totalSell == MAX_TOKEN_SELL){
               nextMintTime = nextMintTime + 365;
               mintCount = 0;
              return true;
@@ -356,6 +356,7 @@ contract ShuttleOne is StandarERC20, Ownable {
       
       require(mintCount + amount <= MINT_PER_YEAR);
       totalSupply_ += amount;
+      mintCount += amount;
       balance[msg.sender] += amount;
       emit Transfer(address(0),msg.sender,amount);
       return true;
@@ -429,8 +430,8 @@ contract ShuttleOne is StandarERC20, Ownable {
         require(haveKYC[_wallet] == true);
         uint256 index = OwnerToKycData[_wallet];
         
-        _data1 = kycDatas[index].KYCData01;
-        _data2 = kycDatas[index].KYCData02;
+        _data1 = kycDatas[index-1].KYCData01;
+        _data2 = kycDatas[index-1].KYCData02;
     }
   
    //Change token sell price. 
