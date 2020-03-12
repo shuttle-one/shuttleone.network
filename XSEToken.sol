@@ -228,7 +228,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   string public name = "ShuttleOne";
   string public symbol = "SZO"; 
   uint256 public decimals = 18;
-  uint256 public version = 8;
+  uint256 public version = 9;
   uint256 public token_price = 500000000000000; // 0.0005 ETH
   uint256 public tokenRedeem = 400000000000000; // 0.0004 ETH
   uint256 public totalSell = 0;
@@ -295,6 +295,7 @@ contract ShuttleOne is StandarERC20, Ownable {
 
       totalSell += amount;
       totalSupply_ += amount;
+      nextBuyTime = now;
       balance[msg.sender] += amount;
       emit Transfer(address(this),msg.sender,amount);
       return true;
@@ -432,6 +433,11 @@ contract ShuttleOne is StandarERC20, Ownable {
         
         _data1 = kycDatas[index-1].KYCData01;
         _data2 = kycDatas[index-1].KYCData02;
+    }
+    
+    //Check address are KYC
+    function haveKYCData(address _wallet) public view returns(bool){
+        return haveKYC[_wallet];
     }
   
    //Change token sell price. 
