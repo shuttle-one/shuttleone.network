@@ -25,6 +25,7 @@ contract Ownable {
 
 
   string [] ownerName;  
+  address newOwner; // temp for confirm;
   mapping (address=>bool) owners;
   mapping (address=>uint256) ownerToProfile;
   address owner;
@@ -51,21 +52,7 @@ contract Ownable {
 
   }
 
-// function to check whether the given address is either Wallet address or Contract Address
 
-  function isContract(address _addr) internal view returns(bool){
-     uint256 length;
-     assembly{
-      length := extcodesize(_addr)
-     }
-     if(length > 0){
-       return true;
-    }
-    else {
-      return false;
-    }
-
-  }
 
 // function to check if the executor is the owner? This to ensure that only the person 
 // who has right to execute/call the function has the permission to do so.
@@ -76,20 +63,30 @@ contract Ownable {
 
 // This function has only one Owner. The ownership can be transferrable and only
 //  the current Owner will only be  able to execute this function.
-  
-  function transferOwnership(address  newOwner, string memory newOwnerName) public onlyOwner{
-    require(isContract(newOwner) == false);
+//  Onwer can be Contract address
+  function transferOwnership(address  _newOwner, string memory newOwnerName) public onlyOwner{
+    
     uint256 idx;
-    if(ownerToProfile[newOwner] == 0)
+    if(ownerToProfile[_newOwner] == 0)
     {
     	idx = ownerName.push(newOwnerName);
-    	ownerToProfile[newOwner] = idx;
+    	ownerToProfile[_newOwner] = idx;
     }
 
 
-    emit OwnershipTransferred(owner,newOwner);
-    owner = newOwner;
+    emit OwnershipTransferred(owner,_newOwner);
+    newOwner = _newOwner;
 
+  }
+  
+  // Function to confirm New Owner can execute
+  function newOwnerConfirm() public returns(bool){
+        if(newOwner == msg.sender)
+        {
+            owner = newOwner;
+            return true;
+        }
+        return false;
   }
 
 // Function to check if the person is listed in a group of Owners and determine
@@ -228,7 +225,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   string public name = "ShuttleOne";
   string public symbol = "SZO"; 
   uint256 public decimals = 18;
-  uint256 public version = 9;
+  uint256 public version = 10;
   uint256 public token_price = 500000000000000; // 0.0005 ETH
   uint256 public tokenRedeem = 400000000000000; // 0.0004 ETH
   uint256 public totalSell = 0;
@@ -253,14 +250,14 @@ contract ShuttleOne is StandarERC20, Ownable {
 
 	KYCData[] internal kycDatas;
 	mapping (address=>uint256) OwnerToKycData; // mapping index with address
-  
-   mapping (address => bool) haveKYC;
-   mapping (address => bool) disInterTran; // Allow for internal transfer default = Yes 
-   mapping (address => bool) agents;
    
-   mapping(address => bool) whitelist;
-   mapping(address => bool) blacklist;
-   mapping(address => bool) shuttleOneWallets; //This shuttle one keep private key 
+   mapping (address => bool) public haveKYC;
+   mapping (address => bool) public disInterTran; // Allow for internal transfer default = Yes 
+   mapping (address => bool) public agents;
+   
+   mapping(address => bool) public whitelist;
+   mapping(address => bool) public blacklist;
+   mapping(address => bool) public shuttleOneWallets; //This shuttle one keep private key 
    
   
   address lockContract  = 0x10A12B15B879f098132324595db383e5CD178aC5; //Change later to smart contracct
@@ -273,7 +270,7 @@ contract ShuttleOne is StandarERC20, Ownable {
     haveKYC[lockContract] = true;
     MAX_TOKEN_SELL = HARD_CAP - tokenLock;
     totalSupply_ += tokenLock;
-    emit Transfer(address(this),lockContract,tokenLock);
+    emit Transfer(address(0),lockContract,tokenLock);
     startTime = now;
     nextMintTime = startTime + 365 days;
     nextBuyTime = startTime;
@@ -287,17 +284,16 @@ contract ShuttleOne is StandarERC20, Ownable {
       require(now - nextBuyTime > 60 seconds);
       
       uint256 amount = msg.value / token_price;
-      tokenProfit += (token_price - tokenRedeem) * amount;
-      
       
       amount  = amount * _1Token;
       require(totalSell + amount <= MAX_TOKEN_SELL);
 
+      tokenProfit += (token_price - tokenRedeem) * amount;
       totalSell += amount;
       totalSupply_ += amount;
       nextBuyTime = now;
       balance[msg.sender] += amount;
-      emit Transfer(address(this),msg.sender,amount);
+      emit Transfer(address(0),msg.sender,amount);
       return true;
   }
   
@@ -314,19 +310,6 @@ contract ShuttleOne is StandarERC20, Ownable {
    function setShuttleOneWallet(address _addr) public onlyOwners returns (bool){
       shuttleOneWallets[_addr] = true;
   }
-  
-     function haveWhiteList(address _walletAddress) public view returns (bool){
-        return whitelist[_walletAddress]; 
-     }
-  
-     function haveBlackList(address _walletAddress) public view returns (bool){
-        return blacklist[_walletAddress]; 
-     }
- 
-     function haveShuttleOneWallet(address _walletAddress) public view returns (bool){
-        return shuttleOneWallets[_walletAddress]; 
-     }
-  
   
   // Token can mint only 11.5 M token per year after reach 230M token mint
     modifier canMintToken(){
@@ -350,7 +333,8 @@ contract ShuttleOne is StandarERC20, Ownable {
       
    function mintToken() public payable canMintToken returns(bool){
       require(haveKYC[msg.sender] == true);
-      
+      require(msg.value >= token_price);
+       
       uint256 amount = msg.value / token_price;
       tokenProfit += (token_price - tokenRedeem) * amount;
       amount  = amount * _1Token;
@@ -382,6 +366,7 @@ contract ShuttleOne is StandarERC20, Ownable {
         require(haveKYC[_from] == true);
         require(blacklist[msg.sender] == false);
         require(blacklist[_to] == false);
+        require(blacklist[_from] == false);
 
 //      require(haveKYC[_to] == true); // remove recieve no KYC
         super.transferFrom(_from, _to, _value);
@@ -440,13 +425,6 @@ contract ShuttleOne is StandarERC20, Ownable {
         return haveKYC[_wallet];
     }
   
-   //Change token sell price. 
-    function setTokenPrice(uint256 pricePerToken) public onlyOwners returns(bool){
-      require(pricePerToken > tokenRedeem);
-      
-      token_price = pricePerToken;
-      return true;
-    } 
   
     function addAgent(address _agent) public onlyOwners returns(bool){
         require(agents[_agent] == false);
