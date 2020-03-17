@@ -52,7 +52,21 @@ contract Ownable {
 
   }
 
+// // function to check whether the given address is either Wallet address or Contract Address
 
+//   function isContract(address _addr) internal view returns(bool){
+//      uint256 length;
+//      assembly{
+//       length := extcodesize(_addr)
+//      }
+//      if(length > 0){
+//       return true;
+//     }
+//     else {
+//       return false;
+//     }
+
+//   }
 
 // function to check if the executor is the owner? This to ensure that only the person 
 // who has right to execute/call the function has the permission to do so.
@@ -100,16 +114,16 @@ contract Ownable {
 // Function to add Owner into a list. The person who wanted to add a new owner into this list but be an existing
 // member of the Owners list. The log will be saved and can be traced / monitor who’s called this function.
   
-  function addOwner(address newOwner,string memory newOwnerName) public onlyOwners{
-    require(owners[newOwner] == false);
+  function addOwner(address _newOwner,string memory newOwnerName) public onlyOwners{
+    require(owners[_newOwner] == false);
     require(newOwner != msg.sender);
-    if(ownerToProfile[newOwner] == 0)
+    if(ownerToProfile[_newOwner] == 0)
     {
     	uint256 idx = ownerName.push(newOwnerName);
-    	ownerToProfile[newOwner] = idx;
+    	ownerToProfile[_newOwner] = idx;
     }
-    owners[newOwner] = true;
-    emit AddOwner(newOwner,newOwnerName);
+    owners[_newOwner] = true;
+    emit AddOwner(_newOwner,newOwnerName);
   }
 
 // Function to remove the Owner from the Owners list. The person who wanted to remove any owner from Owners
@@ -229,7 +243,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   uint256 public token_price = 500000000000000; // 0.0005 ETH
   uint256 public tokenRedeem = 400000000000000; // 0.0004 ETH
   uint256 public totalSell = 0;
-
+  bool public stopMint = false;
   
   uint256 public _1Token = 1 ether;
   uint256 public HARD_CAP = 230000000 ether;
@@ -279,7 +293,13 @@ contract ShuttleOne is StandarERC20, Ownable {
  
   uint256 tokenProfit;
   
+  function stopMintToken() public onlyOwners returns(bool){
+      stopMint = true;
+      return true;
+  }
+  
   function buyToken() payable public returns(bool){
+      require(stopMint == false);
       require(msg.value >= token_price);
       require(now - nextBuyTime > 60 seconds);
       
@@ -311,6 +331,19 @@ contract ShuttleOne is StandarERC20, Ownable {
       shuttleOneWallets[_addr] = true;
   }
   
+    //  function haveWhiteList(address _walletAddress) public view returns (bool){
+    //     return whitelist[_walletAddress]; 
+    //  }
+  
+    //  function haveBlackList(address _walletAddress) public view returns (bool){
+    //     return blacklist[_walletAddress]; 
+    //  }
+ 
+    //  function haveShuttleOneWallet(address _walletAddress) public view returns (bool){
+    //     return shuttleOneWallets[_walletAddress]; 
+    //  }
+  
+  
   // Token can mint only 11.5 M token per year after reach 230M token mint
     modifier canMintToken(){
     require(whitelist[msg.sender] == true);
@@ -332,6 +365,7 @@ contract ShuttleOne is StandarERC20, Ownable {
        
       
    function mintToken() public payable canMintToken returns(bool){
+      require(stopMint == false);
       require(haveKYC[msg.sender] == true);
       require(msg.value >= token_price);
        
@@ -425,6 +459,13 @@ contract ShuttleOne is StandarERC20, Ownable {
         return haveKYC[_wallet];
     }
   
+//   //Change token sell price. 
+    function setTokenPrice(uint256 pricePerToken) public onlyOwners returns(bool){
+      require(pricePerToken > tokenRedeem);
+      
+      token_price = pricePerToken;
+      return true;
+    } 
   
     function addAgent(address _agent) public onlyOwners returns(bool){
         require(agents[_agent] == false);
