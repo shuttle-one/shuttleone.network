@@ -1,6 +1,4 @@
-/**
- *Submitted for verification at Etherscan.io on 2020-03-28
-*/
+
 
 pragma solidity ^0.5.10;
 
@@ -114,7 +112,7 @@ contract ERC20 {
 contract WDAI is Ownable {
     string public name     = "Wrapped DAI";
     string public symbol   = "WDAI";
-    uint8  public decimals = 6; // 6 on testnet
+    uint8  public decimals = 18;
     string public company  = "ShuttleOne Pte Ltd";
 
     event  Approval(address indexed _tokenOwner, address indexed _spender, uint256 _amount);
@@ -131,9 +129,11 @@ contract WDAI is Ownable {
     ERC20  daiToken;
     
      constructor() public {
-         daiToken = ERC20(0xBd19d686e5b5b1184fFBFE7e5B4838B30678fd8a); //DAI_XSE
+         daiToken = ERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F); //Dai Stablecoin (DAI)
          
      }
+     
+     
 
     function deposit(address _from,uint256 amount) public returns (bool) {
         
@@ -145,7 +145,7 @@ contract WDAI is Ownable {
     }
     
     function withdraw(uint256 _amount) public {
-        require(balance[msg.sender] >= _amount);
+        require(balance[msg.sender] >= _amount,"WDAI/ERROR-out-of-balance-withdraw");
         balance[msg.sender] -= _amount;
         daiToken.transfer(msg.sender,_amount);
         emit Withdraw(msg.sender, _amount);
@@ -168,9 +168,9 @@ contract WDAI is Ownable {
 
 
     function transfer(address _to, uint256 _amount) public returns (bool) {
-        require(balance[msg.sender] >= _amount);
-        require(_to != address(0));
-        require(allowTransfer[msg.sender]);
+        require(balance[msg.sender] >= _amount,"WDAI/ERROR-out-of-balance-transfer");
+        require(_to != address(0),"WDAI/ERROR-transfer-addr-0");
+        require(allowTransfer[msg.sender],"WDAI/ERROR-transfer-not-allow");
 
         balance[msg.sender] -= _amount;
         balance[_to] += _amount;
@@ -179,9 +179,9 @@ contract WDAI is Ownable {
 
     function transferFrom(address _from, address _to, uint256 _amount) public returns (bool)
     {
-        require(balance[_from] >= _amount);
-        require(allowed[_from][msg.sender] >= _amount); 
-        require(allowTransfer[msg.sender]);
+        require(balance[_from] >= _amount,"WDAI/ERROR-transFrom-out-of");
+        require(allowed[_from][msg.sender] >= _amount,"WDAI/ERROR-spender-outouf"); 
+        require(allowTransfer[msg.sender],"WDAI/ERROR-transfrom-not-allow");
 
         balance[_from] -= _amount;
         balance[_to] += _amount;
@@ -192,8 +192,8 @@ contract WDAI is Ownable {
     }
     
     function intTransfer(address _from, address _to, uint256 _amount) external onlyOwners returns(bool){
-           require(balance[_from] >= _amount);
-           require(_to != address(0));
+           require(balance[_from] >= _amount,"WDAI/ERROR-intran-outof");
+           require(_to != address(0),"WDAI/ERROR-intran-addr0");
            
            balance[_from] -= _amount; 
            balance[_to] += _amount;
@@ -203,9 +203,15 @@ contract WDAI is Ownable {
     }
      
     function intWithdraw(address _to,uint256 _amount) public onlyOwners returns(bool){
-        require(balance[_to] >= _amount);
+        require(balance[_to] >= _amount,"WDAI/ERROR-withdraw-outof");
         balance[_to] -= _amount;
         daiToken.transfer(_to,_amount);
         emit Withdraw(_to, _amount);
     } 
+    
+    function setAllowTransfer(address _addr,bool _allow) public onlyOwners returns(bool){
+        allowTransfer[_addr] = _allow;
+    }
 }
+
+
