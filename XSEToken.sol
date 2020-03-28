@@ -71,7 +71,7 @@ contract Ownable {
 // function to check if the executor is the owner? This to ensure that only the person 
 // who has right to execute/call the function has the permission to do so.
   modifier onlyOwner(){
-    require(msg.sender == owner);
+    require(msg.sender == owner,"SZO/ERROR-not-owner");
     _;
   }
 
@@ -115,8 +115,8 @@ contract Ownable {
 // member of the Owners list. The log will be saved and can be traced / monitor who’s called this function.
   
   function addOwner(address _newOwner,string memory newOwnerName) public onlyOwners{
-    require(owners[_newOwner] == false);
-    require(newOwner != msg.sender);
+    require(owners[_newOwner] == false,"SZO/ERROR-already-owner");
+    require(newOwner != msg.sender,"SZO/ERROR-same-owner-add");
     if(ownerToProfile[_newOwner] == 0)
     {
     	uint256 idx = ownerName.push(newOwnerName);
@@ -132,7 +132,7 @@ contract Ownable {
 // This ShuttleOne Smart Contract will become useless if there is no owner at all.
 
   function removeOwner(address _owner) public onlyOwners{
-    require(_owner != msg.sender);  // can't remove your self
+    require(_owner != msg.sender,"SZO/ERROR-remove-yourself");  // can't remove your self
     owners[_owner] = false;
     emit RemoveOwner(_owner);
   }
@@ -200,8 +200,8 @@ contract StandarERC20 is ERC20{
         }
 
      function transfer(address _to, uint256 _value) public returns (bool){
-        require(_value <= balance[msg.sender]);
-        require(_to != address(0));
+        require(_value <= balance[msg.sender],"SZO/ERROR-insufficient-balance");
+        require(_to != address(0),"SZO/ERROR-address-0");
 
         balance[msg.sender] = balance[msg.sender].sub(_value);
         balance[_to] = balance[_to].add(_value);
@@ -221,9 +221,9 @@ contract StandarERC20 is ERC20{
 
       function transferFrom(address _from, address _to, uint256 _value)
             public returns (bool){
-               require(_value <= balance[_from]);
-               require(_value <= allowed[_from][msg.sender]); 
-               require(_to != address(0));
+               require(_value <= balance[_from],"SZO/ERROR-insufficient-balance");
+               require(_value <= allowed[_from][msg.sender],"SZO/ERROR-insufficient-allowed"); 
+               require(_to != address(0),"SZO/ERROR-sendto-address0");
 
               balance[_from] = balance[_from].sub(_value);
               balance[_to] = balance[_to].add(_value);
@@ -299,14 +299,14 @@ contract ShuttleOne is StandarERC20, Ownable {
   }
   
   function buyToken() payable public returns(bool){
-      require(stopMint == false);
-      require(msg.value >= token_price);
-      require(now - nextBuyTime > 60 seconds);
+      require(stopMint == false,"SZO/ERROR-stopmint");
+      require(msg.value >= token_price,"SZO/ERROR-buy-lower");
+      require(now - nextBuyTime > 60 seconds,"SZO/ERROR-wait-buy-time");
       
       uint256 amount = msg.value / token_price;
       
       amount  = amount * _1Token;
-      require(totalSell + amount <= MAX_TOKEN_SELL);
+      require(totalSell + amount <= MAX_TOKEN_SELL,"SZO/ERROR-insufficient-tosell");
 
       tokenProfit += (token_price - tokenRedeem) * amount;
       totalSell += amount;
@@ -346,8 +346,8 @@ contract ShuttleOne is StandarERC20, Ownable {
   
   // Token can mint only 11.5 M token per year after reach 230M token mint
     modifier canMintToken(){
-    require(whitelist[msg.sender] == true);
-    require(mintCount < MINT_PER_YEAR);
+    require(whitelist[msg.sender] == true,"SZO/ERROR-not-whitelist");
+    require(mintCount < MINT_PER_YEAR,"SZO/ERROR-insufficient-mint-year");
     _;
     }
   
@@ -365,15 +365,15 @@ contract ShuttleOne is StandarERC20, Ownable {
        
       
    function mintToken() public payable canMintToken returns(bool){
-      require(stopMint == false);
-      require(haveKYC[msg.sender] == true);
-      require(msg.value >= token_price);
+      require(stopMint == false,"SZO/ERROR-stopmint02");
+      require(haveKYC[msg.sender] == true,"SZO/ERROR-not_kyc-mint");
+      require(msg.value >= token_price,"SZO/ERROR-buy-lower2");
        
       uint256 amount = msg.value / token_price;
       tokenProfit += (token_price - tokenRedeem) * amount;
       amount  = amount * _1Token;
       
-      require(mintCount + amount <= MINT_PER_YEAR);
+      require(mintCount + amount <= MINT_PER_YEAR,"SZO/ERROR-insufficient-mint-year2");
       totalSupply_ += amount;
       mintCount += amount;
       balance[msg.sender] += amount;
@@ -385,9 +385,9 @@ contract ShuttleOne is StandarERC20, Ownable {
 
 // Add information KYC for standard ERC20 transfer to block only KYC user  
   function transfer(address _to, uint256 _value) public returns (bool){
-      require(haveKYC[msg.sender] == true);
-      require(blacklist[msg.sender] == false);
-      require(blacklist[_to] == false);
+      require(haveKYC[msg.sender] == true,"SZO/ERROR-transfer-kyc");
+      require(blacklist[msg.sender] == false,"SZO/ERROR-transfer-blacklist");
+      require(blacklist[_to] == false,"SZO/ERROR-transfer-to-blacklist");
       
       //require(haveKYC[_to] == true);  // remove recieve no KYC
 
@@ -397,10 +397,10 @@ contract ShuttleOne is StandarERC20, Ownable {
   //Add on KYC check to StandarERC20 transferFrom function
   function transferFrom(address _from, address _to, uint256 _value) public returns (bool){
 
-        require(haveKYC[_from] == true);
-        require(blacklist[msg.sender] == false);
-        require(blacklist[_to] == false);
-        require(blacklist[_from] == false);
+        require(haveKYC[_from] == true,"SZO/ERROR-transferfrom-kyc");
+        require(blacklist[msg.sender] == false,"SZO/ERROR-transferfrom-sender-blacklist");
+        require(blacklist[_to] == false,"SZO/ERROR-transferfrom-to-blacklist");
+        require(blacklist[_from] == false,"SZO/ERROR-transferfrom-from-blacklist");
 
 //      require(haveKYC[_to] == true); // remove recieve no KYC
         super.transferFrom(_from, _to, _value);
@@ -417,12 +417,12 @@ contract ShuttleOne is StandarERC20, Ownable {
   // sender and reciever  will need to KYC
    function intTransfer(address _from, address _to, uint256 _value) external onlyOwners returns(bool){
    
-    require(disInterTran[_from] == false);
-    require(balance[_from] >= _value);
-    require(_to != address(0));
-    require(haveKYC[_from] == true);
-    require(blacklist[_from] == false);
-    require(blacklist[_to] == false);
+    require(disInterTran[_from] == false,"SZO/ERROR-disable-tran");
+    require(balance[_from] >= _value,"SZO/ERROR-insufficient-balance-intran");
+    require(_to != address(0),"SZO/ERROR-address-0-intran");
+    require(haveKYC[_from] == true,"SZO/ERROR-from-no-kyc");
+    require(blacklist[_from] == false,"SZO/ERROR-intran-from-blacklist");
+    require(blacklist[_to] == false,"SZO/ERROR-intran-to-blacklist");
     
   //  require(haveKYC[_to] == true);
         
@@ -436,7 +436,7 @@ contract ShuttleOne is StandarERC20, Ownable {
    	// Add KYC Data to blockchain with encode It will have Name Surname National and ID/Passport No.
    	// Only permission of ShuttleOne can put this data 
 	function createKYCData(bytes32 _KycData1, bytes32 _kycData2,address  _wallet) onlyOwners public returns(uint256){
-		require(haveKYC[_wallet] == false); // can't re KYC  if already KYC
+		require(haveKYC[_wallet] == false,"SZO/ERROR-already-kyc"); // can't re KYC  if already KYC
 		
 		uint256 id = kycDatas.push(KYCData(_KycData1, _kycData2));
 		OwnerToKycData[_wallet] = id;
@@ -447,7 +447,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   
     //Get Encoding KYC Data 
     function getKYCData(address _wallet) public view returns(bytes32 _data1,bytes32 _data2){
-        require(haveKYC[_wallet] == true);
+        require(haveKYC[_wallet] == true,"SZO/ERROR-no-kyc");
         uint256 index = OwnerToKycData[_wallet];
         
         _data1 = kycDatas[index-1].KYCData01;
@@ -461,16 +461,16 @@ contract ShuttleOne is StandarERC20, Ownable {
   
 //   //Change token sell price. 
     function setTokenPrice(uint256 pricePerToken) public onlyOwners returns(bool){
-      require(pricePerToken > tokenRedeem);
+      require(pricePerToken > tokenRedeem,"SZO/ERROR-set-lower-price");
       
       token_price = pricePerToken;
       return true;
     } 
   
     function addAgent(address _agent) public onlyOwners returns(bool){
-        require(agents[_agent] == false);
-        require(haveKYC[_agent] == true);
-        require(_agent != msg.sender);
+        require(agents[_agent] == false,"SZO/ERROR-already-agent");
+        require(haveKYC[_agent] == true,"SZO/ERROR-agent-no-kyc");
+        require(_agent != msg.sender,"SZO/ERROR-add-yourself");
         
         agents[_agent] = true;
         
@@ -480,11 +480,11 @@ contract ShuttleOne is StandarERC20, Ownable {
   //Redeem token that use for fee. after reedeem token will burn 
   function redeemFee(uint256 amount) public onlyOwners returns(bool){
       uint256  _fund;
-      require(agents[msg.sender] == true);
+      require(agents[msg.sender] == true,"SZO/ERROR-not-agent");
       
       _fund = (amount / _1Token) * tokenRedeem; 
-      require(balance[msg.sender] >= amount);
-      require(address(this).balance >= _fund);
+      require(balance[msg.sender] >= amount,"SZO/ERROR-insufficient-balance-agent");
+      require(address(this).balance >= _fund,"SZO/ERROR-insufficient-balance-szo");
       
       balance[msg.sender] -= amount;
       totalSupply_ -= amount; // burn token
@@ -496,7 +496,7 @@ contract ShuttleOne is StandarERC20, Ownable {
   }
   
   function burn(uint256 amount) public onlyOwners returns(bool){
-      require(balance[msg.sender] >= amount);
+      require(balance[msg.sender] >= amount,"SZO/ERROR-insufficient-balance-burn");
       
       balance[msg.sender] -= amount;
       totalSupply_ -= amount; // burn token
@@ -514,21 +514,21 @@ contract ShuttleOne is StandarERC20, Ownable {
   
   function setProfitAddr(uint256 addrIdx) public onlyOwners{
      if(addrIdx == 1){
-          require(msg.sender != profitAddr2);
+          require(msg.sender != profitAddr2,"SZO/ERROR-profit-error1");
           profitAddr1 = msg.sender;
      }
      if(addrIdx == 2){
-          require(msg.sender != profitAddr1);
+          require(msg.sender != profitAddr1,"SZO/ERROR-profit-error2");
           profitAddr2 = msg.sender;
      }
   }
   
   function withDrawFunc(uint256 _fund) public onlyOwners{
-		require(address(this).balance >= _fund);
-		require(_fund & 1 == 0); // only even number
-		require(tokenProfit >= _fund);
-		require(profitAddr1 != address(0));
-		require(profitAddr2 != address(0));
+		require(address(this).balance >= _fund,"SZO/ERROR-insufficient-balance-withdraw");
+		require(_fund & 1 == 0,"SZO/ERROR-only-evennumber"); // only even number
+		require(tokenProfit >= _fund,"SZO/ERROR-insufficient-balance-profit");
+		require(profitAddr1 != address(0),"SZO/ERROR-notset-address1");
+		require(profitAddr2 != address(0),"SZO/ERROR-notset-address2");
 		
         profitAddr1.transfer(_fund / 2);
         profitAddr2.transfer(_fund / 2);
