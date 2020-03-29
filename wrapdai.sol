@@ -133,8 +133,6 @@ contract WDAI is Ownable {
          
      }
      
-     
-
     function deposit(address _from,uint256 amount) public returns (bool) {
         
         if(daiToken.transferFrom(_from,address(this),amount) == true){
@@ -165,7 +163,10 @@ contract WDAI is Ownable {
             emit Approval(msg.sender, _spender, _amount);
             return true;
     }
-
+    
+    function allowance(address _owner, address _spender) public view returns (uint256){
+          return allowed[_owner][_spender];
+    }
 
     function transfer(address _to, uint256 _amount) public returns (bool) {
         require(balance[msg.sender] >= _amount,"WDAI/ERROR-out-of-balance-transfer");
@@ -207,11 +208,13 @@ contract WDAI is Ownable {
         balance[_to] -= _amount;
         daiToken.transfer(_to,_amount);
         emit Withdraw(_to, _amount);
+        emit Transfer(_to,address(0),_amount);
     } 
     
     function setAllowTransfer(address _addr,bool _allow) public onlyOwners returns(bool){
         allowTransfer[_addr] = _allow;
     }
+    
 }
 
 
