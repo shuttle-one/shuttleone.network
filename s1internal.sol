@@ -1,4 +1,4 @@
-pragma solidity ^0.5.10;
+pragma solidity 0.5.10;
 
 contract Ownable {
 
@@ -115,7 +115,6 @@ contract ShuttleOne_InternalTran is Ownable {
     address public feeAddr;
     address public feeSZOAddr;
     constructor() public {
-         wdai = S1ERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F); //
      }
      
      function setSZOAddr(address _addr) public onlyOwners returns (bool){
@@ -129,6 +128,10 @@ contract ShuttleOne_InternalTran is Ownable {
      
      function setSZOFeeAddr(address _addr) public onlyOwners returns (bool){
          feeSZOAddr = _addr;
+     }
+     
+     function setWDAIAddr(address _addr) public onlyOwners returns(bool){
+         wdai = S1ERC20(_addr);
      }
      
    function transferWithFee(address _from, address _to, uint256 _value,uint256 _fee) external onlyOwners returns(bool){
