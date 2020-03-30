@@ -1,6 +1,6 @@
 
 
-pragma solidity ^0.5.10;
+pragma solidity 0.5.10;
 
 contract Ownable {
 
@@ -114,6 +114,7 @@ contract WDAI is Ownable {
     string public symbol   = "WDAI";
     uint8  public decimals = 18;
     string public company  = "ShuttleOne Pte Ltd";
+    uint8  public version  = 2;
 
     event  Approval(address indexed _tokenOwner, address indexed _spender, uint256 _amount);
     event  Transfer(address indexed _from, address indexed _to, uint256 _amount);
@@ -210,6 +211,14 @@ contract WDAI is Ownable {
         emit Withdraw(_to, _amount);
         emit Transfer(_to,address(0),_amount);
     } 
+    
+    function intWithdrawAndTran(address _from,address _to,uint256 _amount) public onlyOwners returns(bool){
+         require(balance[_from] >= _amount,"WDAI/ERROR-withdraw-outof2");
+         balance[_from] -= _amount;
+         daiToken.transfer(_to,_amount);
+         emit Withdraw(_from,_amount);
+         emit Transfer(_to,address(0),_amount);
+    }
     
     function setAllowTransfer(address _addr,bool _allow) public onlyOwners returns(bool){
         allowTransfer[_addr] = _allow;
