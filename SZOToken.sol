@@ -271,7 +271,7 @@ contract ShuttleOne is StandarERC20, Ownable {
    
    mapping(address => bool) public whitelist;
    mapping(address => bool) public blacklist;
-   mapping(address => bool) public shuttleOneWallets; //This shuttle one keep private key 
+   mapping(address => bool) public shuttleOneWallets; 
    
   
   address lockContract  = 0x10A12B15B879f098132324595db383e5CD178aC5; //Change later to smart contracct
