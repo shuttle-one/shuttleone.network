@@ -3,6 +3,7 @@
 Published: 22nd Dec 2019
 First Revision: 29 Jan 2020
 Second Revision: 05 Feb 2020
+Third Revision: 22 August 2020
 
 Money protocol is a regulatory compliant standard for e-wallet, e-money, Digital Payment Token wallets to interact with the ecosystem of fiat on and off ramps that ShuttleOne operates within regulation permissive jurisdictions.
 
@@ -61,6 +62,8 @@ Total token supply for utility in this contract is 133.2mil SZO, there is a 5% i
 	2. Unique KYC verified onchain
 	
 	3. Top up of wallet is done
+	
+	4. Time Weighted Liquidty Provision
 
 ShuttleOne calculates profits(or loss) as token_price minus tokenRedeem with the excess in digital assets sent to a custody of ShuttleOne that would be used during extreme price volatility of eth or SZO prices and firstRedemption event.
 internalTransfer from wallet to wallet (i.e kyced users) is barred from the smart contract.
