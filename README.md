@@ -1,4 +1,4 @@
-# Overview of Money Protocol
+# Overview of ShuttleOne.Network
 
 Published: 22nd Dec 2019
 First Revision: 29 Jan 2020
